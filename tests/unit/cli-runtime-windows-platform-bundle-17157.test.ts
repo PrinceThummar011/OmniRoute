@@ -70,10 +70,10 @@ test(
         assert.equal(status.installed, true, "Windows Claude CLI should be discovered");
         assert.equal(status.runnable, true, "a successful --version probe must be runnable");
         assert.equal(status.reason, null, "do not fall into settings_found_binary_unresolved");
-        assert.match(status.commandPath || "", /claude\\.cmd$/i);
+        assert.match(status.commandPath || "", /claude\.cmd$/i);
         assert.ok(
           observed.some(
-            (call) => /claude\\.cmd$/i.test(call.command) && call.args[0] === "--version"
+            (call) => /claude\.cmd$/i.test(call.command) && call.args[0] === "--version"
           ),
           "the resolved Windows shim must receive a version healthcheck"
         );

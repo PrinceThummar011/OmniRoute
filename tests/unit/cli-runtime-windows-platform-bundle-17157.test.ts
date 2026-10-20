@@ -61,12 +61,33 @@ test(
       );
       assert.deepEqual(observed[0], { command: "where.exe", args: ["claude"] });
 
+      // Exercise the public status API, not just the lower-level locator.
+      // Force the same PATH lookup irrespective of CLIs on the CI runner.
+      const previousClaudeOverride = process.env.CLI_CLAUDE_BIN;
+      process.env.CLI_CLAUDE_BIN = "claude";
+      try {
+        const status = await cliRuntime.getCliRuntimeStatus("claude");
+        assert.equal(status.installed, true, "Windows Claude CLI should be discovered");
+        assert.equal(status.runnable, true, "a successful --version probe must be runnable");
+        assert.equal(status.reason, null, "do not fall into settings_found_binary_unresolved");
+        assert.match(status.commandPath || "", /claude\\.cmd$/i);
+        assert.ok(
+          observed.some(
+            (call) => /claude\\.cmd$/i.test(call.command) && call.args[0] === "--version"
+          ),
+          "the resolved Windows shim must receive a version healthcheck"
+        );
+      } finally {
+        if (previousClaudeOverride === undefined) delete process.env.CLI_CLAUDE_BIN;
+        else process.env.CLI_CLAUDE_BIN = previousClaudeOverride;
+      }
+
       // The original Linux lookup still uses the POSIX command probe.
       os.platform = originalPlatform;
       const posixResult = await cliRuntime.locateCommand("claude", {});
       assert.equal(posixResult.installed, true);
       assert.equal(posixResult.commandPath, "claude");
-      assert.deepEqual(observed[1], {
+      assert.deepEqual(observed.at(-1), {
         command: "sh",
         args: ["-c", 'command -v -- "$1"', "sh", "claude"],
       });

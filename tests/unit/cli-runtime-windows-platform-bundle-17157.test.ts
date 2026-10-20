@@ -57,7 +57,7 @@ test(
       assert.equal(windowsResult.installed, true);
       assert.equal(
         windowsResult.commandPath,
-        String.raw`C:\\Users\\tester\\AppData\\Roaming\\npm\\claude.cmd`
+        String.raw`C:\Users\tester\AppData\Roaming\npm\claude.cmd`
       );
       assert.deepEqual(observed[0], { command: "where.exe", args: ["claude"] });
 

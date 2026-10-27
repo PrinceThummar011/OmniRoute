@@ -164,11 +164,27 @@ test("#17180 image request keeps deepseek flash targets in the combo pool", () =
     noopLog
   ).map((t) => t.modelStr);
 
-  assert.deepEqual(kept, [
-    "deepseek/deepseek-4.1-flash",
-    "deepseek/deepseek-v4.1-flash",
-    "deepseek/deepseek-flash",
-  ]);
+  // #17289 (tip): unknown-vision targets are no longer dropped from an image
+  // request; they trail the confirmed-vision tier as last-resort fallbacks.
+  // The Flash ids/aliases must form that confirmed tier, in their original order.
+  for (const fallback of ["deepseek/deepseek-v4-pro", "groq/llama-3.1-8b-instant"]) {
+    assert.equal(
+      getResolvedModelCapabilities(fallback).supportsVision,
+      null,
+      `${fallback} is an unknown-vision fallback, not a confirmed one`
+    );
+  }
+  assert.deepEqual(
+    kept,
+    [
+      "deepseek/deepseek-4.1-flash",
+      "deepseek/deepseek-v4.1-flash",
+      "deepseek/deepseek-flash",
+      "deepseek/deepseek-v4-pro",
+      "groq/llama-3.1-8b-instant",
+    ],
+    "the deepseek Flash ids and aliases must be the confirmed-vision tier, ahead of unknown fallbacks"
+  );
 });
 
 test("the id heuristic gets no generic deepseek fragment", () => {
